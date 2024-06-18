@@ -1,4 +1,9 @@
-# String Interner
+# Byte String Interner
+
+This is a fork of [string-interner](https://github.com/robbepop/string-interner) with `str` changed to `[u8]`
+and `String` changed to `Vec<u8>`.
+I've put absolutely no thought into this other than "I want to intern non-utf8 string" and I'm not likely to update or
+support this repo. The below readme is unchanged.
 
 | Continuous Integration |     Test Coverage    |  Documentation   |       Crates.io      |
 |:----------------------:|:--------------------:|:----------------:|:--------------------:|
