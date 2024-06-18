@@ -1,7 +1,7 @@
 mod allocator;
 
 use allocator::TracingAllocator;
-use string_interner::{backend, DefaultHashBuilder, DefaultSymbol, Symbol};
+use byte_string_interner::{backend, DefaultHashBuilder, DefaultSymbol, Symbol};
 
 #[global_allocator]
 static ALLOCATOR: TracingAllocator = TracingAllocator::new();
@@ -70,7 +70,7 @@ pub struct ProfilingStats {
 macro_rules! gen_tests_for_backend {
     ( $backend:ty ) => {
         type StringInterner =
-            string_interner::StringInterner<$backend, DefaultHashBuilder>;
+            byte_string_interner::StringInterner<$backend, DefaultHashBuilder>;
 
         fn profile_memory_usage(words: &[String]) -> ProfilingStats {
             ALLOCATOR.reset();

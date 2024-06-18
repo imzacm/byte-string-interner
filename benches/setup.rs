@@ -1,4 +1,4 @@
-use string_interner::{
+use byte_string_interner::{
     backend::{Backend, BucketBackend, BufferBackend, StringBackend},
     DefaultSymbol,
     StringInterner,

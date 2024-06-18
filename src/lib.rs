@@ -9,7 +9,7 @@
 //! ### Example: Interning & Symbols
 //!
 //! ```
-//! use string_interner::StringInterner;
+//! use byte_string_interner::StringInterner;
 //!
 //! let mut interner = StringInterner::default();
 //! let sym0 = interner.get_or_intern("Elephant");
@@ -25,7 +25,7 @@
 //! ### Example: Creation by `FromIterator`
 //!
 //! ```
-//! # use string_interner::DefaultStringInterner;
+//! # use byte_string_interner::DefaultStringInterner;
 //! let interner = ["Elephant", "Tiger", "Horse", "Tiger"]
 //!     .into_iter()
 //!     .collect::<DefaultStringInterner>();
@@ -34,7 +34,7 @@
 //! ### Example: Look-up
 //!
 //! ```
-//! # use string_interner::StringInterner;
+//! # use byte_string_interner::StringInterner;
 //! let mut interner = StringInterner::default();
 //! let sym = interner.get_or_intern(b"Banana");
 //! assert_eq!(interner.resolve(sym), Some(&b"Banana"[..]));
@@ -43,7 +43,7 @@
 //! ### Example: Iteration
 //!
 //! ```
-//! # use string_interner::{DefaultStringInterner, Symbol};
+//! # use byte_string_interner::{DefaultStringInterner, Symbol};
 //! let interner = <DefaultStringInterner>::from_iter(["Earth", "Water", "Fire", "Air"]);
 //! for (sym, str) in &interner {
 //!     println!("{} = {:?}", sym.to_usize(), str);
@@ -53,8 +53,8 @@
 //! ### Example: Use Different Backend
 //!
 //! ```
-//! # use string_interner::StringInterner;
-//! use string_interner::backend::BufferBackend;
+//! # use byte_string_interner::StringInterner;
+//! use byte_string_interner::backend::BufferBackend;
 //! type Interner = StringInterner<BufferBackend>;
 //! let mut interner = Interner::new();
 //! let sym1 = interner.get_or_intern("Tiger");
@@ -67,8 +67,8 @@
 //! ### Example: Use Different Backend & Symbol
 //!
 //! ```
-//! # use string_interner::StringInterner;
-//! use string_interner::{backend::BucketBackend, symbol::SymbolU16};
+//! # use byte_string_interner::StringInterner;
+//! use byte_string_interner::{backend::BucketBackend, symbol::SymbolU16};
 //! type Interner = StringInterner<BucketBackend<SymbolU16>>;
 //! let mut interner = Interner::new();
 //! let sym1 = interner.get_or_intern("Tiger");

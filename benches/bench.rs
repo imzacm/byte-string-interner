@@ -9,6 +9,7 @@ use self::setup::{
     BENCH_LEN_STRINGS,
     BENCH_STRING_LEN,
 };
+use byte_string_interner::backend::Backend;
 use criterion::{
     black_box,
     criterion_group,
@@ -19,7 +20,6 @@ use criterion::{
     Criterion,
     Throughput,
 };
-use string_interner::backend::Backend;
 
 criterion_group!(
     bench_resolve,
