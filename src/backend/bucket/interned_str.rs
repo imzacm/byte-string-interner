@@ -9,13 +9,13 @@ use core::ptr::NonNull;
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct InternedStr {
-    ptr: NonNull<str>,
+    ptr: NonNull<[u8]>,
 }
 
 impl InternedStr {
     /// Creates a new interned string from the given `str`.
     #[inline]
-    pub fn new(val: &str) -> Self {
+    pub fn new(val: &[u8]) -> Self {
         InternedStr {
             ptr: NonNull::from(val),
         }
@@ -27,7 +27,7 @@ impl InternedStr {
     ///
     /// The user has to make sure that no lifetime guarantees are invalidated.
     #[inline]
-    pub(super) fn as_str(&self) -> &str {
+    pub(super) fn as_str(&self) -> &[u8] {
         // SAFETY: This is safe since we only ever operate on interned `str`
         //         that are never moved around in memory to avoid danling
         //         references.

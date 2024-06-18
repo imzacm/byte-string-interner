@@ -2,7 +2,7 @@
 
 use super::Backend;
 use crate::{symbol::expect_valid_symbol, DefaultSymbol, Symbol};
-use alloc::{string::String, vec::Vec};
+use alloc::vec::Vec;
 use core::{iter::Enumerate, marker::PhantomData, slice};
 
 /// An interner backend that accumulates all interned string contents into one string.
@@ -40,7 +40,7 @@ use core::{iter::Enumerate, marker::PhantomData, slice};
 #[derive(Debug)]
 pub struct StringBackend<S = DefaultSymbol> {
     ends: Vec<usize>,
-    buffer: String,
+    buffer: Vec<u8>,
     marker: PhantomData<fn() -> S>,
 }
 
@@ -85,7 +85,7 @@ impl<S> Default for StringBackend<S> {
     fn default() -> Self {
         Self {
             ends: Vec::default(),
-            buffer: String::default(),
+            buffer: Vec::default(),
             marker: Default::default(),
         }
     }
@@ -101,14 +101,10 @@ where
     }
 
     /// Returns the string associated to the span.
-    fn span_to_str(&self, span: Span) -> &str {
-        // SAFETY: - We convert a `String` into its underlying bytes and then
-        //           directly reinterpret it as `&str` again which is safe.
-        //         - Nothing mutates the string in between since this is a `&self`
-        //           method.
-        //         - The spans we use for `(start..end]` ranges are always
+    fn span_to_str(&self, span: Span) -> &[u8] {
+        // SAFETY: - The spans we use for `(start..end]` ranges are always
         //           constructed in accordance to valid utf8 byte ranges.
-        unsafe { core::str::from_utf8_unchecked(&self.buffer.as_bytes()[span.from..span.to]) }
+        &self.buffer[span.from..span.to]
     }
 
     /// Returns the span for the given symbol if any.
@@ -135,9 +131,9 @@ where
     /// # Panics
     ///
     /// If the backend ran out of symbols.
-    fn push_string(&mut self, string: &str) -> S {
-        self.buffer.push_str(string);
-        let to = self.buffer.as_bytes().len();
+    fn push_string(&mut self, string: &[u8]) -> S {
+        self.buffer.extend_from_slice(string);
+        let to = self.buffer.len();
         let symbol = self.next_symbol();
         self.ends.push(to);
         symbol
@@ -159,18 +155,18 @@ where
         let default_word_len = 5;
         Self {
             ends: Vec::with_capacity(cap),
-            buffer: String::with_capacity(cap * default_word_len),
+            buffer: Vec::with_capacity(cap * default_word_len),
             marker: Default::default(),
         }
     }
 
     #[inline]
-    fn intern(&mut self, string: &str) -> Self::Symbol {
+    fn intern(&mut self, string: &[u8]) -> Self::Symbol {
         self.push_string(string)
     }
 
     #[inline]
-    fn resolve(&self, symbol: Self::Symbol) -> Option<&str> {
+    fn resolve(&self, symbol: Self::Symbol) -> Option<&[u8]> {
         self.symbol_to_span(symbol)
             .map(|span| self.span_to_str(span))
     }
@@ -181,7 +177,7 @@ where
     }
 
     #[inline]
-    unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &str {
+    unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &[u8] {
         // SAFETY: The function is marked unsafe so that the caller guarantees
         //         that required invariants are checked.
         unsafe { self.span_to_str(self.symbol_to_span_unchecked(symbol)) }
@@ -197,7 +193,7 @@ impl<'a, S> IntoIterator for &'a StringBackend<S>
 where
     S: Symbol,
 {
-    type Item = (S, &'a str);
+    type Item = (S, &'a [u8]);
     type IntoIter = Iter<'a, S>;
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -227,7 +223,7 @@ impl<'a, S> Iterator for Iter<'a, S>
 where
     S: Symbol,
 {
-    type Item = (S, &'a str);
+    type Item = (S, &'a [u8]);
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {

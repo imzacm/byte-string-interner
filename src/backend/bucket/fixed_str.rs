@@ -4,7 +4,7 @@ use alloc::string::String;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct FixedString {
-    contents: String,
+    contents: Vec<u8>,
 }
 
 impl FixedString {
@@ -12,7 +12,7 @@ impl FixedString {
     #[inline]
     pub fn with_capacity(cap: usize) -> Self {
         Self {
-            contents: String::with_capacity(cap),
+            contents: Vec::with_capacity(cap),
         }
     }
 
@@ -20,7 +20,7 @@ impl FixedString {
     ///
     /// Guarantees not to perform any reallocations in this process.
     #[inline]
-    pub fn finish(self) -> String {
+    pub fn finish(self) -> Vec<u8> {
         self.contents
     }
 
@@ -41,19 +41,13 @@ impl FixedString {
     /// Returns a reference to the pushed string if there was enough capacity to
     /// perform the operation. Otherwise returns `None`.
     #[inline]
-    pub fn push_str(&mut self, string: &str) -> Option<InternedStr> {
+    pub fn push_str(&mut self, string: &[u8]) -> Option<InternedStr> {
         let len = self.len();
         if self.capacity() < len + string.len() {
             return None;
         }
-        self.contents.push_str(string);
+        self.contents.extend_from_slice(string);
         debug_assert_eq!(self.contents.len(), len + string.len());
-        Some(InternedStr::new(
-            // SAFETY: We convert from bytes to utf8 from which we know through the
-            //         input string that they must represent valid utf8.
-            unsafe {
-                core::str::from_utf8_unchecked(&self.contents.as_bytes()[len..len + string.len()])
-            },
-        ))
+        Some(InternedStr::new(&self.contents[len..len + string.len()]))
     }
 }

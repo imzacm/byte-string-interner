@@ -208,28 +208,28 @@ macro_rules! gen_tests_for_backend {
         fn is_empty_works() {
             let mut interner = StringInterner::new();
             assert!(interner.is_empty());
-            interner.get_or_intern("aa");
+            interner.get_or_intern(b"aa");
             assert!(!interner.is_empty());
         }
 
         #[test]
         fn clone_works() {
             let mut interner = StringInterner::new();
-            assert_eq!(interner.get_or_intern("aa").to_usize(), 0);
+            assert_eq!(interner.get_or_intern(b"aa").to_usize(), 0);
 
             let mut cloned = interner.clone();
             assert_eq!(interner, cloned);
             // And the clone should have the same interned values
-            assert_eq!(cloned.get_or_intern("aa").to_usize(), 0);
+            assert_eq!(cloned.get_or_intern(b"aa").to_usize(), 0);
         }
 
         #[test]
         fn get_or_intern_works() {
             let mut interner = StringInterner::new();
             // Insert 3 unique strings:
-            let aa = interner.get_or_intern("aa").to_usize();
-            let bb = interner.get_or_intern("bb").to_usize();
-            let cc = interner.get_or_intern("cc").to_usize();
+            let aa = interner.get_or_intern(b"aa").to_usize();
+            let bb = interner.get_or_intern(b"bb").to_usize();
+            let cc = interner.get_or_intern(b"cc").to_usize();
             // All symbols must be different from each other.
             assert_ne!(aa, bb);
             assert_ne!(bb, cc);
@@ -238,9 +238,9 @@ macro_rules! gen_tests_for_backend {
             assert_eq!(interner.len(), 3);
             // Insert the same 3 unique strings, yield the same symbols:
             assert_eq!(interner.resolve(
-                <DefaultSymbol>::try_from_usize(aa).unwrap()), Some("aa"));
+                <DefaultSymbol>::try_from_usize(aa).unwrap()), Some(&b"aa"[..]));
             assert_eq!(
-                interner.get_or_intern("aa").to_usize(),
+                interner.get_or_intern(b"aa").to_usize(),
                 aa,
                 "'aa' did not produce the same symbol",
             );
@@ -261,9 +261,9 @@ macro_rules! gen_tests_for_backend {
         fn get_or_intern_static_works() {
             let mut interner = StringInterner::new();
             // Insert 3 unique strings:
-            let a = interner.get_or_intern_static("aa").to_usize();
-            let b = interner.get_or_intern_static("bb").to_usize();
-            let c = interner.get_or_intern_static("cc").to_usize();
+            let a = interner.get_or_intern_static(b"aa").to_usize();
+            let b = interner.get_or_intern_static(b"bb").to_usize();
+            let c = interner.get_or_intern_static(b"cc").to_usize();
             // All symbols must be different from each other.
             assert_ne!(a, b);
             assert_ne!(b, c);
@@ -271,9 +271,9 @@ macro_rules! gen_tests_for_backend {
             // The length of the string interner must be 3 at this point.
             assert_eq!(interner.len(), 3);
             // Insert the same 3 unique strings, yield the same symbols:
-            assert_eq!(interner.get_or_intern_static("aa").to_usize(), a);
-            assert_eq!(interner.get_or_intern_static("bb").to_usize(), b);
-            assert_eq!(interner.get_or_intern_static("cc").to_usize(), c);
+            assert_eq!(interner.get_or_intern_static(b"aa").to_usize(), a);
+            assert_eq!(interner.get_or_intern_static(b"bb").to_usize(), b);
+            assert_eq!(interner.get_or_intern_static(b"cc").to_usize(), c);
             assert_eq!(interner.len(), 3);
         }
 
@@ -281,14 +281,14 @@ macro_rules! gen_tests_for_backend {
         fn resolve_works() {
             let mut interner = StringInterner::new();
             // Insert 3 unique strings:
-            let aa = interner.get_or_intern("aa");
-            let bb = interner.get_or_intern("bb");
-            let cc = interner.get_or_intern("cc");
+            let aa = interner.get_or_intern(b"aa");
+            let bb = interner.get_or_intern(b"bb");
+            let cc = interner.get_or_intern(b"cc");
             assert_eq!(interner.len(), 3);
             // Resolve valid symbols:
-            assert_eq!(interner.resolve(aa), Some("aa"));
-            assert_eq!(interner.resolve(bb), Some("bb"));
-            assert_eq!(interner.resolve(cc), Some("cc"));
+            assert_eq!(interner.resolve(aa), Some(&b"aa"[..]));
+            assert_eq!(interner.resolve(bb), Some(&b"bb"[..]));
+            assert_eq!(interner.resolve(cc), Some(&b"cc"[..]));
             assert_eq!(interner.len(), 3);
             // Resolve invalid symbols:
             let dd = expect_valid_symbol(1000);
@@ -302,14 +302,14 @@ macro_rules! gen_tests_for_backend {
         fn resolve_unchecked_works() {
             let mut interner = StringInterner::new();
             // Insert 3 unique strings:
-            let aa = interner.get_or_intern("aa");
-            let bb = interner.get_or_intern("bb");
-            let cc = interner.get_or_intern("cc");
+            let aa = interner.get_or_intern(b"aa");
+            let bb = interner.get_or_intern(b"bb");
+            let cc = interner.get_or_intern(b"cc");
             assert_eq!(interner.len(), 3);
             // Resolve valid symbols:
-            assert_eq!(unsafe { interner.resolve_unchecked(aa) }, "aa");
-            assert_eq!(unsafe { interner.resolve_unchecked(bb) }, "bb");
-            assert_eq!(unsafe { interner.resolve_unchecked(cc) }, "cc");
+            assert_eq!(unsafe { interner.resolve_unchecked(aa) }, &b"aa"[..]);
+            assert_eq!(unsafe { interner.resolve_unchecked(bb) }, &b"bb"[..]);
+            assert_eq!(unsafe { interner.resolve_unchecked(cc) }, &b"cc"[..]);
             assert_eq!(interner.len(), 3);
             // Resolve invalid symbols:
             let dd = expect_valid_symbol(1000);
@@ -322,25 +322,25 @@ macro_rules! gen_tests_for_backend {
         fn get_works() {
             let mut interner = StringInterner::new();
             // Insert 3 unique strings:
-            let aa = interner.get_or_intern("aa");
-            let bb = interner.get_or_intern("bb");
-            let cc = interner.get_or_intern("cc");
+            let aa = interner.get_or_intern(b"aa");
+            let bb = interner.get_or_intern(b"bb");
+            let cc = interner.get_or_intern(b"cc");
             assert_eq!(interner.len(), 3);
             // Get the symbols of the same 3 strings:
-            assert_eq!(interner.get("aa"), Some(aa));
-            assert_eq!(interner.get("bb"), Some(bb));
-            assert_eq!(interner.get("cc"), Some(cc));
+            assert_eq!(interner.get(b"aa"), Some(aa));
+            assert_eq!(interner.get(b"bb"), Some(bb));
+            assert_eq!(interner.get(b"cc"), Some(cc));
             assert_eq!(interner.len(), 3);
             // Get the symbols of some unknown strings:
-            assert_eq!(interner.get("dd"), None);
-            assert_eq!(interner.get("ee"), None);
-            assert_eq!(interner.get("ff"), None);
+            assert_eq!(interner.get(b"dd"), None);
+            assert_eq!(interner.get(b"ee"), None);
+            assert_eq!(interner.get(b"ff"), None);
             assert_eq!(interner.len(), 3);
         }
 
         #[test]
         fn from_iter_works() {
-            let strings = ["aa", "bb", "cc", "dd", "ee", "ff"];
+            let strings = [b"aa", b"bb", b"cc", b"dd", b"ee", b"ff"];
             let expected = {
                 let mut interner = StringInterner::new();
                 for &string in &strings {
@@ -355,7 +355,7 @@ macro_rules! gen_tests_for_backend {
 
         #[test]
         fn extend_works() {
-            let strings = ["aa", "bb", "cc", "dd", "ee", "ff"];
+            let strings = [b"aa", b"bb", b"cc", b"dd", b"ee", b"ff"];
             let expected = {
                 let mut interner = StringInterner::new();
                 for &string in &strings {
@@ -375,7 +375,7 @@ macro_rules! gen_tests_for_backend {
         #[test]
         fn iter_works() {
             let mut interner = StringInterner::new();
-            let strings = ["aa", "bb", "cc", "dd", "ee", "ff"];
+            let strings = [&b"aa"[..], &b"bb"[..], &b"cc"[..], &b"dd"[..], &b"ee"[..], &b"ff"[..]];
             let symbols = strings.iter().map(|s| interner.get_or_intern(s)).collect::<Vec<_>>();
             let expected_iter = symbols.into_iter().zip(strings);
             assert!(Iterator::eq(expected_iter, &interner));
@@ -385,24 +385,24 @@ macro_rules! gen_tests_for_backend {
         fn shrink_to_fit_works() {
             let mut interner = StringInterner::new();
             // Insert 3 unique strings:
-            let aa = interner.get_or_intern("aa").to_usize();
-            let bb = interner.get_or_intern("bb").to_usize();
-            let cc = interner.get_or_intern("cc").to_usize();
+            let aa = interner.get_or_intern(b"aa").to_usize();
+            let bb = interner.get_or_intern(b"bb").to_usize();
+            let cc = interner.get_or_intern(b"cc").to_usize();
 
             interner.shrink_to_fit();
 
             assert_eq!(
-                interner.get_or_intern("aa").to_usize(),
+                interner.get_or_intern(b"aa").to_usize(),
                 aa,
                 "'aa' did not produce the same symbol",
             );
             assert_eq!(
-                interner.get_or_intern("bb").to_usize(),
+                interner.get_or_intern(b"bb").to_usize(),
                 bb,
                 "'bb' did not produce the same symbol",
             );
             assert_eq!(
-                interner.get_or_intern("cc").to_usize(),
+                interner.get_or_intern(b"cc").to_usize(),
                 cc,
                 "'cc' did not produce the same symbol",
             );

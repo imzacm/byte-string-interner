@@ -48,7 +48,7 @@ use core::{iter::Enumerate, marker::PhantomData, slice};
 pub struct BucketBackend<S = DefaultSymbol> {
     spans: Vec<InternedStr>,
     head: FixedString,
-    full: Vec<String>,
+    full: Vec<Vec<u8>>,
     marker: PhantomData<fn() -> S>,
 }
 
@@ -98,7 +98,7 @@ where
     }
 
     #[inline]
-    fn intern(&mut self, string: &str) -> Self::Symbol {
+    fn intern(&mut self, string: &[u8]) -> Self::Symbol {
         // SAFETY: This is safe because we never hand out the returned
         //         interned string instance to the outside and only operate
         //         on it within this backend.
@@ -107,7 +107,7 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn intern_static(&mut self, string: &'static str) -> Self::Symbol {
+    fn intern_static(&mut self, string: &'static [u8]) -> Self::Symbol {
         let interned = InternedStr::new(string);
         self.push_span(interned)
     }
@@ -120,12 +120,12 @@ where
     }
 
     #[inline]
-    fn resolve(&self, symbol: Self::Symbol) -> Option<&str> {
+    fn resolve(&self, symbol: Self::Symbol) -> Option<&[u8]> {
         self.spans.get(symbol.to_usize()).map(InternedStr::as_str)
     }
 
     #[inline]
-    unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &str {
+    unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &[u8] {
         // SAFETY: The function is marked unsafe so that the caller guarantees
         //         that required invariants are checked.
         unsafe { self.spans.get_unchecked(symbol.to_usize()).as_str() }
@@ -154,7 +154,7 @@ where
     }
 
     /// Interns a new string into the backend and returns a reference to it.
-    unsafe fn alloc(&mut self, string: &str) -> InternedStr {
+    unsafe fn alloc(&mut self, string: &[u8]) -> InternedStr {
         let cap = self.head.capacity();
         if cap < self.head.len() + string.len() {
             let new_cap = (usize::max(cap, string.len()) + 1).next_power_of_two();
@@ -208,7 +208,7 @@ impl<'a, S> IntoIterator for &'a BucketBackend<S>
 where
     S: Symbol,
 {
-    type Item = (S, &'a str);
+    type Item = (S, &'a [u8]);
     type IntoIter = Iter<'a, S>;
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -236,7 +236,7 @@ impl<'a, S> Iterator for Iter<'a, S>
 where
     S: Symbol,
 {
-    type Item = (S, &'a str);
+    type Item = (S, &'a [u8]);
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {

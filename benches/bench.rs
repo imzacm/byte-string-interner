@@ -42,10 +42,10 @@ fn bench_get_or_intern_static(c: &mut Criterion) {
     fn bench_for_backend<BB: BackendBenchmark>(g: &mut BenchmarkGroup<WallTime>) {
         #[rustfmt::skip]
         let static_strings = &[
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
-            "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
-            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-            "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+            b"a", b"b", b"c", b"d", b"e", b"f", b"g", b"h", b"i", b"j", b"k", b"l", b"m",
+            b"n", b"o", b"p", b"q", b"r", b"s", b"t", b"u", b"v", b"w", b"x", b"y", b"z",
+            b"A", b"B", b"C", b"D", b"E", b"F", b"G", b"H", b"I", b"J", b"K", b"L", b"M",
+            b"N", b"O", b"P", b"Q", b"R", b"S", b"T", b"U", b"V", b"W", b"X", b"Y", b"Z",
         ];
         g.throughput(Throughput::Elements(static_strings.len() as u64));
         g.bench_with_input(
@@ -251,7 +251,7 @@ fn bench_iter_already_filled(c: &mut Criterion) {
         for<'a> &'a <BB as BackendBenchmark>::Backend: IntoIterator<
             Item = (
                 <<BB as BackendBenchmark>::Backend as Backend>::Symbol,
-                &'a str,
+                &'a [u8],
             ),
         >,
     {

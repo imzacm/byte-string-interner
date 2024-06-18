@@ -11,7 +11,7 @@ impl<B, H> Serialize for StringInterner<B, H>
 where
     B: Backend,
     <B as Backend>::Symbol: Symbol,
-    for<'a> &'a B: IntoIterator<Item = (<B as Backend>::Symbol, &'a str)>,
+    for<'a> &'a B: IntoIterator<Item = (<B as Backend>::Symbol, &'a [u8])>,
     H: BuildHasher,
 {
     fn serialize<T>(&self, serializer: T) -> Result<T::Ok, T::Error>
@@ -80,7 +80,7 @@ where
     {
         let mut interner: StringInterner<B, H> =
             StringInterner::with_capacity_and_hasher(seq.size_hint().unwrap_or(0), H::default());
-        while let Some(s) = seq.next_element::<Box<str>>()? {
+        while let Some(s) = seq.next_element::<Box<[u8]>>()? {
             interner.get_or_intern(s);
         }
         Ok(interner)

@@ -3,7 +3,7 @@
 use super::Backend;
 use crate::{symbol::expect_valid_symbol, DefaultSymbol, Symbol};
 use alloc::vec::Vec;
-use core::{marker::PhantomData, mem, str};
+use core::{marker::PhantomData, mem};
 
 /// An interner backend that appends all interned string information in a single buffer.
 ///
@@ -106,7 +106,7 @@ where
     ///
     /// The caller of the function has to ensure that calling this method
     /// is safe to do.
-    unsafe fn resolve_index_to_str_unchecked(&self, index: usize) -> &str {
+    unsafe fn resolve_index_to_str_unchecked(&self, index: usize) -> &[u8] {
         // SAFETY: The function is marked unsafe so that the caller guarantees
         //         that required invariants are checked.
         let bytes = unsafe { self.buffer.get_unchecked(index..) };
@@ -118,9 +118,7 @@ where
             // SAFETY: The function is marked unsafe so that the caller guarantees
             //         that required invariants are checked.
             unsafe { self.buffer.get_unchecked(index_str..index_str + str_len) };
-        // SAFETY: It is guaranteed by the backend that only valid strings
-        //         are stored in this portion of the buffer.
-        unsafe { str::from_utf8_unchecked(str_bytes) }
+        str_bytes
     }
 
     /// Pushes the given value onto the buffer with `var7` encoding.
@@ -136,12 +134,11 @@ where
     /// # Panics
     ///
     /// If the backend ran out of symbols.
-    fn push_string(&mut self, string: &str) -> S {
+    fn push_string(&mut self, string: &[u8]) -> S {
         let symbol = self.next_symbol();
         let str_len = string.len();
-        let str_bytes = string.as_bytes();
         self.encode_var_usize(str_len);
-        self.buffer.extend(str_bytes);
+        self.buffer.extend(string);
         self.len_strings += 1;
         symbol
     }
@@ -171,15 +168,15 @@ where
     }
 
     #[inline]
-    fn intern(&mut self, string: &str) -> Self::Symbol {
+    fn intern(&mut self, string: &[u8]) -> Self::Symbol {
         self.push_string(string)
     }
 
     #[inline]
-    fn resolve(&self, symbol: Self::Symbol) -> Option<&str> {
+    fn resolve(&self, symbol: Self::Symbol) -> Option<&[u8]> {
         match self.resolve_index_to_str(symbol.to_usize()) {
             None => None,
-            Some((bytes, _)) => str::from_utf8(bytes).ok(),
+            Some((bytes, _)) => Some(bytes),
         }
     }
 
@@ -188,7 +185,7 @@ where
     }
 
     #[inline]
-    unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &str {
+    unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &[u8] {
         // SAFETY: The function is marked unsafe so that the caller guarantees
         //         that required invariants are checked.
         unsafe { self.resolve_index_to_str_unchecked(symbol.to_usize()) }
@@ -438,7 +435,7 @@ impl<'a, S> IntoIterator for &'a BufferBackend<S>
 where
     S: Symbol,
 {
-    type Item = (S, &'a str);
+    type Item = (S, &'a [u8]);
     type IntoIter = Iter<'a, S>;
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -468,7 +465,7 @@ impl<'a, S> Iterator for Iter<'a, S>
 where
     S: Symbol,
 {
-    type Item = (S, &'a str);
+    type Item = (S, &'a [u8]);
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -481,13 +478,10 @@ where
         self.backend
             .resolve_index_to_str(self.next)
             .and_then(|(bytes, next)| {
-                // SAFETY: Within the iterator all indices given to `resolv_index_to_str`
-                //         are properly pointing to the start of each interned string.
-                let string = unsafe { str::from_utf8_unchecked(bytes) };
                 let symbol = S::try_from_usize(self.next)?;
                 self.next = next;
                 self.remaining -= 1;
-                Some((symbol, string))
+                Some((symbol, bytes))
             })
     }
 }

@@ -36,8 +36,8 @@
 //! ```
 //! # use string_interner::StringInterner;
 //! let mut interner = StringInterner::default();
-//! let sym = interner.get_or_intern("Banana");
-//! assert_eq!(interner.resolve(sym), Some("Banana"));
+//! let sym = interner.get_or_intern(b"Banana");
+//! assert_eq!(interner.resolve(sym), Some(&b"Banana"[..]));
 //! ```
 //!
 //! ### Example: Iteration
@@ -46,7 +46,7 @@
 //! # use string_interner::{DefaultStringInterner, Symbol};
 //! let interner = <DefaultStringInterner>::from_iter(["Earth", "Water", "Fire", "Air"]);
 //! for (sym, str) in &interner {
-//!     println!("{} = {}", sym.to_usize(), str);
+//!     println!("{} = {:?}", sym.to_usize(), str);
 //! }
 //! ```
 //!

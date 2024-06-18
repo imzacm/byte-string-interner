@@ -26,7 +26,7 @@ pub trait Backend: Default {
     type Symbol: Symbol;
 
     /// The iterator over the symbols and their strings.
-    type Iter<'a>: Iterator<Item = (Self::Symbol, &'a str)>
+    type Iter<'a>: Iterator<Item = (Self::Symbol, &'a [u8])>
     where
         Self: 'a;
 
@@ -41,7 +41,7 @@ pub trait Backend: Default {
     ///
     /// The backend must make sure that the returned symbol maps back to the
     /// original string in its [`resolve`](`Backend::resolve`) method.
-    fn intern(&mut self, string: &str) -> Self::Symbol;
+    fn intern(&mut self, string: &[u8]) -> Self::Symbol;
 
     /// Interns the given static string and returns its interned ref and symbol.
     ///
@@ -50,7 +50,7 @@ pub trait Backend: Default {
     /// The backend must make sure that the returned symbol maps back to the
     /// original string in its [`resolve`](`Backend::resolve`) method.
     #[inline]
-    fn intern_static(&mut self, string: &'static str) -> Self::Symbol {
+    fn intern_static(&mut self, string: &'static [u8]) -> Self::Symbol {
         // The default implementation simply forwards to the normal [`intern`]
         // implementation. Backends that can optimize for this use case should
         // implement this method.
@@ -61,7 +61,7 @@ pub trait Backend: Default {
     fn shrink_to_fit(&mut self);
 
     /// Resolves the given symbol to its original string contents.
-    fn resolve(&self, symbol: Self::Symbol) -> Option<&str>;
+    fn resolve(&self, symbol: Self::Symbol) -> Option<&[u8]>;
 
     /// Resolves the given symbol to its original string contents.
     ///
@@ -72,7 +72,7 @@ pub trait Backend: Default {
     /// by the [`intern`](`Backend::intern`) or
     /// [`intern_static`](`Backend::intern_static`) methods of the same
     /// interner backend.
-    unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &str;
+    unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &[u8];
 
     /// Creates an iterator that yields all interned strings and their symbols.
     fn iter(&self) -> Self::Iter<'_>;

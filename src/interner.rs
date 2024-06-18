@@ -164,7 +164,7 @@ where
     #[inline]
     pub fn get<T>(&self, string: T) -> Option<<B as Backend>::Symbol>
     where
-        T: AsRef<str>,
+        T: AsRef<[u8]>,
     {
         let string = string.as_ref();
         let Self {
@@ -196,7 +196,7 @@ where
         intern_fn: fn(&mut B, T) -> <B as Backend>::Symbol,
     ) -> <B as Backend>::Symbol
     where
-        T: Copy + Hash + AsRef<str> + for<'a> PartialEq<&'a str>,
+        T: Copy + Hash + AsRef<[u8]> + for<'a> PartialEq<&'a [u8]>,
     {
         let Self {
             dedup,
@@ -236,7 +236,7 @@ where
     #[inline]
     pub fn get_or_intern<T>(&mut self, string: T) -> <B as Backend>::Symbol
     where
-        T: AsRef<str>,
+        T: AsRef<[u8]>,
     {
         self.get_or_intern_using(string.as_ref(), B::intern)
     }
@@ -255,7 +255,7 @@ where
     /// If the interner already interns the maximum number of strings possible
     /// by the chosen symbol type.
     #[inline]
-    pub fn get_or_intern_static(&mut self, string: &'static str) -> <B as Backend>::Symbol {
+    pub fn get_or_intern_static(&mut self, string: &'static [u8]) -> <B as Backend>::Symbol {
         self.get_or_intern_using(string, B::intern_static)
     }
 
@@ -266,7 +266,7 @@ where
 
     /// Returns the string for the given `symbol`` if any.
     #[inline]
-    pub fn resolve(&self, symbol: <B as Backend>::Symbol) -> Option<&str> {
+    pub fn resolve(&self, symbol: <B as Backend>::Symbol) -> Option<&[u8]> {
         self.backend.resolve(symbol)
     }
 
@@ -277,7 +277,7 @@ where
     /// It is the caller's responsibility to provide this method with `symbol`s
     /// that are valid for the [`StringInterner`].
     #[inline]
-    pub unsafe fn resolve_unchecked(&self, symbol: <B as Backend>::Symbol) -> &str {
+    pub unsafe fn resolve_unchecked(&self, symbol: <B as Backend>::Symbol) -> &[u8] {
         unsafe { self.backend.resolve_unchecked(symbol) }
     }
 
@@ -293,7 +293,7 @@ where
     B: Backend,
     <B as Backend>::Symbol: Symbol,
     H: BuildHasher + Default,
-    T: AsRef<str>,
+    T: AsRef<[u8]>,
 {
     fn from_iter<I>(iter: I) -> Self
     where
@@ -312,7 +312,7 @@ where
     B: Backend,
     <B as Backend>::Symbol: Symbol,
     H: BuildHasher,
-    T: AsRef<str>,
+    T: AsRef<[u8]>,
 {
     fn extend<I>(&mut self, iter: I)
     where
@@ -328,10 +328,10 @@ impl<'a, B, H> IntoIterator for &'a StringInterner<B, H>
 where
     B: Backend,
     <B as Backend>::Symbol: Symbol,
-    &'a B: IntoIterator<Item = (<B as Backend>::Symbol, &'a str)>,
+    &'a B: IntoIterator<Item = (<B as Backend>::Symbol, &'a [u8])>,
     H: BuildHasher,
 {
-    type Item = (<B as Backend>::Symbol, &'a str);
+    type Item = (<B as Backend>::Symbol, &'a [u8]);
     type IntoIter = <&'a B as IntoIterator>::IntoIter;
 
     #[cfg_attr(feature = "inline-more", inline)]
